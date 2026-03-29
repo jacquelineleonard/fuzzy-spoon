@@ -1,1 +1,19 @@
 # fuzzy-spoon
+# --- Core Environment API ---
+fastapi==0.109.0
+uvicorn==0.27.0
+pydantic==2.6.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+
+# --- Task Logic & Utilities ---
+pyyaml==6.0.1
+jinja2==3.1.3
+
+# --- Baseline Inference (The Agent) ---
+openai==1.12.0
+python-dotenv==1.0.1
+
+# --- Testing & Validation ---
+httpx==0.26.0
+pytest==8.0.0
