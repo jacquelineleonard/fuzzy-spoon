@@ -1,0 +1,7 @@
+{
+  "id": "task1_syntax",
+  "title": "Fix syntax and logic error",
+  "description": "Fix the function so it returns the correct sum of two integers.",
+  "function_name": "add",
+  "timeout": 2
+}
