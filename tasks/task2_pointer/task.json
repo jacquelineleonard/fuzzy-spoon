@@ -1,0 +1,7 @@
+{
+  "id": "task2_pointer",
+  "title": "Fix nil pointer dereference",
+  "description": "Ensure the function safely handles nil input.",
+  "function_name": "getName",
+  "timeout": 2
+}

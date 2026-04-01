@@ -1,0 +1,7 @@
+{
+  "id": "task3_concurrency",
+  "title": "Fix race condition",
+  "description": "Ensure the counter increments correctly to 1000.",
+  "function_name": "main",
+  "timeout": 2
+}

@@ -1,0 +1,10 @@
+{
+  "inputs": [
+    null,
+    {"name": "Alice"}
+  ],
+  "expected_outputs": [
+    "unknown",
+    "Alice"
+  ]
+}
