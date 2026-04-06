@@ -1,50 +1,59 @@
-import subprocess
-import os
 from fastapi import FastAPI
-from models import Action, Observation
+from models import Action
+from server.environment import evaluate, load_task
+import json
 
 app = FastAPI()
 
-# Path where we will test the code
-TEMP_FILE = "task_run.go"
+# Load task list
+with open("tasks/index.json") as f:
+    TASKS = json.load(f)
+
+current_task_index = 0
+
+
+@app.post("/reset")
+def reset():
+    global current_task_index
+
+    current_task_index = (current_task_index + 1) % len(TASKS)
+    task_id = TASKS[current_task_index]
+
+    task, code, _ = load_task(task_id)
+
+    return {
+        "observation": {
+            "task_id": task_id,
+            "description": task["description"],
+            "code": code
+        },
+        "reward": 0.0,
+        "done": False
+    }
+
 
 @app.post("/step")
 def step(action: Action):
-    # 1. WRITE: Put the AI's code into a real file
-    with open(TEMP_FILE, "w") as f:
-        f.write(action.new_code)
-    
-    # 2. RUN: Ask the Go compiler to check the work
-    # We use 'go run' to see if it works, or 'go build' to just check syntax
-    try:
-        result = subprocess.run(
-            ["go", "run", TEMP_FILE], 
-            capture_output=True, 
-            text=True, 
-            timeout=15 # Safety Net: 5 second limit
-        )
-        
-        # 3. SCORE: Did it work?
-        if result.returncode == 0:
-            reward = 1.0
-            error_msg = "Success!"
-            done = True
-        else:
-            reward = 0.0
-            error_msg = result.stderr # Show the AI the compiler error
-            done = False
-            
-    except subprocess.TimeoutExpired:
-        reward = 0.0
-        error_msg = "Error: Code execution timed out (Infinite loop?)"
-        done = False
+    global current_task_index
+
+    task_id = TASKS[current_task_index]
+
+    score = evaluate(task_id, action.new_code)
 
     return {
-        "reward": reward,
-        "done": done,
+        "reward": score,
+        "done": True,
         "observation": {
+            "task_id": task_id,
             "code": action.new_code,
-            "error": error_msg,
-            "task_id": "day2_test"
+            "score": score
         }
+    }
+
+
+@app.get("/state")
+def state():
+    return {
+        "current_task_index": current_task_index,
+        "task_id": TASKS[current_task_index]
     }
