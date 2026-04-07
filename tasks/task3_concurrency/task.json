@@ -1,7 +1,25 @@
 {
-  "id": "task3_concurrency",
-  "title": "Fix race condition",
-  "description": "Ensure the counter increments correctly to 1000.",
-  "function_name": "main",
-  "timeout": 2
+  "task_id": "task3_concurrency",
+  "description": "Fix filtering and pagination bugs including slice modification, off-by-one errors, and bounds checking.",
+  "expected_keywords": ["slice", "index", "bounds", "pagination", "off-by-one"],
+  "expected_issues_min": 2,
+
+  "test_cases": [
+    {
+      "description": "filterInStock removes adjacent zero-stock items",
+      "expected_in_stock_count": 2
+    },
+    {
+      "page": 1,
+      "page_size": 2,
+      "expected_count": 2,
+      "expected_first_name": "Laptop"
+    },
+    {
+      "page": 2,
+      "page_size": 2,
+      "expected_count": 1,
+      "expected_first_name": "Keyboard"
+    }
+  ]
 }

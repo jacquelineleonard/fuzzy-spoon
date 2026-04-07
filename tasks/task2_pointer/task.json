@@ -1,7 +1,21 @@
 {
-  "id": "task2_pointer",
-  "title": "Fix nil pointer dereference",
-  "description": "Ensure the function safely handles nil input.",
-  "function_name": "getName",
-  "timeout": 2
+  "task_id": "task2_pointer",
+  "description": "Fix nil pointer dereference across multiple functions. findUser may return nil and must be handled safely.",
+  "expected_keywords": ["nil", "pointer", "check", "null"],
+  "expected_issues_min": 1,
+
+  "test_cases": [
+    {
+      "trigger_user_id": 1,
+      "expected_output_contains": "alice@example.com"
+    },
+    {
+      "trigger_user_id": 99,
+      "expected_output_contains": "unknown"
+    },
+    {
+      "trigger_user_id": 2,
+      "expected_output_contains": "bob@example.com"
+    }
+  ]
 }
