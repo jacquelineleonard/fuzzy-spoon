@@ -5,7 +5,6 @@ import json
 
 app = FastAPI()
 
-# Load task list
 with open("tasks/index.json") as f:
     TASKS = json.load(f)
 
@@ -54,6 +53,5 @@ def step(action: Action):
 @app.get("/state")
 def state():
     return {
-        "current_task_index": current_task_index,
         "task_id": TASKS[current_task_index]
     }
