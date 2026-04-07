@@ -18,7 +18,7 @@ dependencies = [
 
 [project.scripts]
 # This satisfies the "Missing [project.scripts] server entry point" error
-fuzzy-spoon-server = "server.app:main"
+server = "server.app:main"
 
 [tool.openenv]
 config = "openenv.yaml"
