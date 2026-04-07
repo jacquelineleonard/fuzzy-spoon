@@ -5,8 +5,7 @@ import json
 import re
 from models import Action, Reward
 
-TASKS_DIR = os.path.join(os.path.dirname(__file__), "tasks")
-
+TASKS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tasks")
 
 def load_task(task_id: str):
     """Load task metadata and buggy code."""

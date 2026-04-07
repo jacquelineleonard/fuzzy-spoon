@@ -1,10 +1,9 @@
 name: go-code-review
-version: "1.0.0"
+version: "1.0.1"
+
 description: >
   An OpenEnv environment where AI agents review and fix buggy Go code.
-  Agents must identify bugs and submit corrected source code across 3 tasks
-  of increasing difficulty: logic errors, nil pointer bugs, and compound
-  pagination/filter bugs.
+  Agents must identify bugs and submit corrected source code across 3 tasks.
 
 tags:
   - openenv
@@ -20,12 +19,12 @@ tasks:
 
   - id: task2_pointer
     difficulty: medium
-    description: Find and fix a nil pointer panic that spans three functions
+    description: Find and fix a nil pointer panic
     max_steps: 3
 
   - id: task3_concurrency
     difficulty: hard
-    description: Fix four interacting bugs in a paginated product listing system
+    description: Fix pagination and filtering bugs
     max_steps: 3
 
 observation_space:
@@ -35,9 +34,13 @@ observation_space:
     description: string
     difficulty: string
     buggy_code: string
-    step: integer
+    step:
+      type: integer
+      description: starts at 0
     max_steps: integer
-    last_reward: float
+    last_reward:
+      type: float
+      nullable: true
     done: boolean
 
 action_space:
@@ -50,17 +53,34 @@ action_space:
       type: string
       enum: [low, medium, high]
     fixed_code: string
-    explanation: string
+    explanation:
+      type: string
+      nullable: true
 
 reward:
-  min: 0.0
-  max: 1.0
-  components:
-    review_score: "0.0–0.4: keyword match on bug identification"
-    compile_score: "0.0–0.2: fixed code compiles"
-    test_score:    "0.0–0.4: fixed code passes test cases"
+  type: object
+  fields:
+    total: float
+    review_score: float
+    compile_score: float
+    test_score: float
+    issues_matched: integer
+    issues_expected: integer
+    tests_passed: integer
+    tests_total: integer
+    compile_error:
+      type: string
+      nullable: true
+
+step_response:
+  type: object
+  fields:
+    observation: object
+    reward: object
+    done: boolean
+    info: object
 
 endpoints:
   reset: POST /reset
-  step:  POST /step
-  state: GET  /state
+  step: POST /step
+  state: GET /state

@@ -1,9 +1,9 @@
 {
   "task_id": "task1_syntax",
   "description": "Fix eligibility logic and discount calculation. Age must be >18 AND score >=50. Discount should reduce price by 20%.",
+  "difficulty": "easy",
   "expected_keywords": ["logic", "operator", "and", "discount"],
   "expected_issues_min": 2,
-
   "test_cases": [
     {
       "function": "isEligible",
