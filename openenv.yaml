@@ -1,0 +1,66 @@
+name: go-code-review
+version: "1.0.0"
+description: >
+  An OpenEnv environment where AI agents review and fix buggy Go code.
+  Agents must identify bugs and submit corrected source code across 3 tasks
+  of increasing difficulty: logic errors, nil pointer bugs, and compound
+  pagination/filter bugs.
+
+tags:
+  - openenv
+  - code-review
+  - golang
+  - software-engineering
+
+tasks:
+  - id: task1_syntax
+    difficulty: easy
+    description: Fix two logic bugs in a discount eligibility system
+    max_steps: 3
+
+  - id: task2_pointer
+    difficulty: medium
+    description: Find and fix a nil pointer panic that spans three functions
+    max_steps: 3
+
+  - id: task3_concurrency
+    difficulty: hard
+    description: Fix four interacting bugs in a paginated product listing system
+    max_steps: 3
+
+observation_space:
+  type: object
+  fields:
+    task_id: string
+    description: string
+    difficulty: string
+    buggy_code: string
+    step: integer
+    max_steps: integer
+    last_reward: float
+    done: boolean
+
+action_space:
+  type: object
+  fields:
+    issues_found:
+      type: array
+      items: string
+    severity:
+      type: string
+      enum: [low, medium, high]
+    fixed_code: string
+    explanation: string
+
+reward:
+  min: 0.0
+  max: 1.0
+  components:
+    review_score: "0.0–0.4: keyword match on bug identification"
+    compile_score: "0.0–0.2: fixed code compiles"
+    test_score:    "0.0–0.4: fixed code passes test cases"
+
+endpoints:
+  reset: POST /reset
+  step:  POST /step
+  state: GET  /state

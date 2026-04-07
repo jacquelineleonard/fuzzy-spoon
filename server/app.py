@@ -1,57 +1,64 @@
-from fastapi import FastAPI
-from models import Action
-from server.environment import evaluate, load_task
-import json
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-app = FastAPI()
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from models import Action, Observation, StepResult
+from server.environment import GoCodeReviewEnv, TASK_ORDER
 
-with open("tasks/index.json") as f:
-    TASKS = json.load(f)
+app = FastAPI(
+    title="Go Code Review Environment",
+    description="OpenEnv environment for AI agents to review and fix buggy Go code",
+    version="1.0.0",
+)
 
-current_task_index = 0
+# One env instance per task — keeps state isolated
+_envs: dict[str, GoCodeReviewEnv] = {
+    task_id: GoCodeReviewEnv(task_id=task_id)
+    for task_id in TASK_ORDER
+}
+
+
+def get_env(task_id: str) -> GoCodeReviewEnv:
+    if task_id not in _envs:
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found. Valid: {TASK_ORDER}")
+    return _envs[task_id]
+
+
+@app.get("/")
+def root():
+    return {"status": "ok", "tasks": TASK_ORDER}
+
+
+@app.get("/tasks")
+def list_tasks():
+    return {"tasks": TASK_ORDER}
 
 
 @app.post("/reset")
-def reset():
-    global current_task_index
-
-    current_task_index = (current_task_index + 1) % len(TASKS)
-    task_id = TASKS[current_task_index]
-
-    task, code, _ = load_task(task_id)
-
-    return {
-        "observation": {
-            "task_id": task_id,
-            "description": task["description"],
-            "code": code
-        },
-        "reward": 0.0,
-        "done": False
-    }
+def reset(task_id: str = "task1_syntax"):
+    env = get_env(task_id)
+    obs = env.reset()
+    return obs.model_dump()
 
 
 @app.post("/step")
-def step(action: Action):
-    global current_task_index
-
-    task_id = TASKS[current_task_index]
-
-    score = evaluate(task_id, action)
-
-    return {
-        "reward": score,
-        "done": True,
-        "observation": {
-            "task_id": task_id,
-            "code": action.fixed_code,
-            "score": score
-        }
-    }
+def step(action: Action, task_id: str = "task1_syntax"):
+    env = get_env(task_id)
+    try:
+        result = env.step(action)
+        return result.model_dump()
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/state")
-def state():
-    return {
-        "task_id": TASKS[current_task_index]
-    }
+def state(task_id: str = "task1_syntax"):
+    env = get_env(task_id)
+    return env.state()
+
+
+@app.get("/health")
+def health():
+    return {"status": "healthy"}

@@ -1,59 +1,97 @@
-import subprocess
-from pathlib import Path
 import json
+import os
+from models import Action, Observation, Reward, StepResult
+from grader import evaluate, load_task
+
+TASKS_DIR = os.path.join(os.path.dirname(__file__), "tasks")
+TASK_ORDER = ["task1_syntax", "task2_pointer", "task3_concurrency"]
+MAX_STEPS = 3
 
 
-TASKS_DIR = Path("tasks")
+class GoCodeReviewEnv:
+    """
+    OpenEnv environment: Go Code Review
+    
+    The agent receives buggy Go code, must:
+      1. Identify what bugs exist (review)
+      2. Submit fixed code (rewrite)
+    
+    Scored on: bug identification + compilation + test passage
+    """
 
+    def __init__(self, task_id: str = "task1_syntax"):
+        self.task_id = task_id
+        self._step_count = 0
+        self._done = False
+        self._last_reward: Reward | None = None
+        self._meta = None
+        self._buggy_code = None
 
-def load_task(task_id):
-    task_path = TASKS_DIR / task_id
+    def reset(self) -> Observation:
+        """Start a fresh episode for the current task."""
+        self._step_count = 0
+        self._done = False
+        self._last_reward = None
 
-    with open(task_path / "task.json") as f:
-        task = json.load(f)
+        self._meta, self._buggy_code = load_task(self.task_id)
 
-    with open(task_path / "buggy.go") as f:
-        code = f.read()
-
-    with open(task_path / "tests.json") as f:
-        tests = json.load(f)
-
-    return task, code, tests
-
-
-def run_go_code(code: str):
-    with open("temp.go", "w") as f:
-        f.write(code)
-
-    try:
-        result = subprocess.run(
-            ["go", "run", "temp.go"],
-            capture_output=True,
-            text=True,
-            timeout=5
+        return Observation(
+            task_id=self.task_id,
+            description=self._meta["description"],
+            difficulty=self._meta["difficulty"],
+            buggy_code=self._buggy_code,
+            step=0,
+            max_steps=MAX_STEPS,
+            last_reward=None,
+            done=False,
         )
-        return result.returncode == 0, result.stdout + result.stderr
 
-    except Exception as e:
-        return False, str(e)
+    def step(self, action: Action) -> StepResult:
+        """
+        Agent submits an action (issues_found + fixed_code).
+        Returns observation, reward, done, info.
+        """
+        if self._done:
+            raise RuntimeError("Episode is done. Call reset() first.")
 
+        self._step_count += 1
+        reward = evaluate(self.task_id, action)
+        self._last_reward = reward
 
-def evaluate(task_id: str, action):
-    _, broken_code, _ = load_task(task_id)
+        # Episode ends if: agent got full score, or max steps reached
+        done = (reward.total >= 1.0) or (self._step_count >= MAX_STEPS)
+        self._done = done
 
-    reward = 0.0
+        obs = Observation(
+            task_id=self.task_id,
+            description=self._meta["description"],
+            difficulty=self._meta["difficulty"],
+            buggy_code=self._buggy_code,
+            step=self._step_count,
+            max_steps=MAX_STEPS,
+            last_reward=reward.total,
+            done=done,
+        )
 
-    # STEP 1: Was original code broken?
-    original_success, _ = run_go_code(broken_code)
+        return StepResult(
+            observation=obs,
+            reward=reward.total,
+            done=done,
+            info={
+                "review_score": reward.review_score,
+                "compile_score": reward.compile_score,
+                "test_score": reward.test_score,
+                "compile_error": reward.compile_error,
+                "issues_matched": reward.issues_matched,
+                "tests_passed": reward.tests_passed,
+            }
+        )
 
-    if not original_success:
-        reward += 0.5
-
-    # STEP 2: Did agent fix it?
-    fixed_success, _ = run_go_code(action.fixed_code)
-
-    if fixed_success:
-        reward += 0.5
-    print("ORIGINAL SUCCESS:", original_success)
-    print("FIXED SUCCESS:", fixed_success)
-    return reward
+    def state(self) -> dict:
+        """Return current environment state (for debugging/logging)."""
+        return {
+            "task_id": self.task_id,
+            "step": self._step_count,
+            "done": self._done,
+            "last_reward": self._last_reward.total if self._last_reward else None,
+        }
