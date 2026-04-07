@@ -1,3 +1,13 @@
+---
+title: Go Code Review OpenEnv
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: docker
+sdk_version: "1.0"
+app_file: server/app.py
+pinned: false
+---
 # Go Code Review OpenEnv
 
 An OpenEnv-compatible environment where AI agents review and fix buggy Go code across multiple tasks of increasing complexity.
