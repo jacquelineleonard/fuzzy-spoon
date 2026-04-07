@@ -1,7 +1,7 @@
 import json
 import os
 from models import Action, Observation, Reward, StepResult
-from grader import evaluate, load_task
+from server.grader import evaluate, load_task
 
 TASKS_DIR = os.path.join(os.path.dirname(__file__), "tasks")
 TASK_ORDER = ["task1_syntax", "task2_pointer", "task3_concurrency"]
@@ -75,7 +75,7 @@ class GoCodeReviewEnv:
 
         return StepResult(
             observation=obs,
-            reward=reward.total,
+            reward=reward,
             done=done,
             info={
                 "review_score": reward.review_score,

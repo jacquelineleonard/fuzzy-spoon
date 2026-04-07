@@ -1,6 +1,7 @@
 {
   "task_id": "task3_concurrency",
   "description": "Fix filtering and pagination bugs including slice modification, off-by-one errors, and bounds checking.",
+  "difficulty": "hard",
   "expected_keywords": ["slice", "index", "bounds", "pagination", "off-by-one"],
   "expected_issues_min": 2,
 

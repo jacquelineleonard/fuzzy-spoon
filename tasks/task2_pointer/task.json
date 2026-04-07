@@ -1,6 +1,7 @@
 {
   "task_id": "task2_pointer",
   "description": "Fix nil pointer dereference across multiple functions. findUser may return nil and must be handled safely.",
+  "difficulty": "medium",
   "expected_keywords": ["nil", "pointer", "check", "null"],
   "expected_issues_min": 1,
 
