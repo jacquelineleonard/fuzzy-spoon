@@ -1,12 +1,15 @@
 from pydantic import BaseModel, Field
+from typing import List
 
 
 class Observation(BaseModel):
-    task_id: str = Field(..., description="Current task ID")
-    code: str = Field(..., description="Buggy or submitted Go code")
-    description: str = Field("", description="Task description")
-    score: float = Field(0.0, description="Score after evaluation")
+    task_id: str = Field(...)
+    code: str = Field(...)
+    description: str = Field("")
+    score: float = Field(0.0)
 
 
 class Action(BaseModel):
-    new_code: str = Field(..., description="Full corrected Go code from agent")
+    issues_found: List[str] = Field(default_factory=list)
+    severity: str = Field(default="low")
+    fixed_code: str = Field(...)
