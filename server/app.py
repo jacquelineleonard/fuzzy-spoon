@@ -62,3 +62,11 @@ def state(task_id: str = "task1_syntax"):
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+def main():
+    import uvicorn
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
+
+
+if name == "main":
+    main()
