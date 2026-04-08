@@ -3,6 +3,17 @@ inference.py — Go Code Review Environment
 """
 # from dotenv import load_dotenv
 # load_dotenv()
+import subprocess
+import sys
+
+def _ensure(package: str, import_name: str = None):
+    import_name = import_name or package
+    try:
+        __import__(import_name)
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package, "-q"])
+
+_ensure("openai")
 
 import os
 import json
@@ -21,8 +32,11 @@ MAX_STEPS    = 3
 TEMPERATURE  = 0.2
 TASKS        = ["task1_syntax", "task2_pointer", "task3_concurrency"]
 
-client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
-
+try:
+    client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
+except Exception:
+    client = None
+    
 # ── Per-task fallback fixed code (Bug 5 fix: correct structs per task) ────────
 FALLBACK_CODE = {
     "task1_syntax": '''package main
