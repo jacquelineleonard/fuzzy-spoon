@@ -1,8 +1,8 @@
 """
 inference.py — Go Code Review Environment
 """
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 import os
 import json
