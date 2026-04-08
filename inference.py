@@ -15,7 +15,7 @@ from openai import OpenAI
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME   = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
 API_KEY      = (os.getenv("API_KEY") or os.getenv("HF_TOKEN") or "").strip()
-ENV_BASE_URL = os.getenv("ENV_BASE_URL", "https://jacquelineleonard-fuzzy-spoon.hf.space/")
+ENV_BASE_URL = os.getenv("ENV_BASE_URL", "https://jacquelineleonard-fuzzy-spoon.hf.space")
 BENCHMARK    = "go-code-review"
 MAX_STEPS    = 3
 TEMPERATURE  = 0.2
@@ -229,8 +229,6 @@ Rules:
 - Return ONLY the JSON object"""
 
 def ask_agent(buggy_code: str, description: str, task_id: str) -> dict:
-    if client is None:
-    return {}
     if "nil" in description.lower() or "pointer" in description.lower():
         hint = "Focus on nil pointer dereference. Check every pointer before use."
     elif "pagination" in description.lower() or "filter" in description.lower():
