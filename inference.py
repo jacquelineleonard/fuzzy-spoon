@@ -36,7 +36,7 @@ try:
     client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
 except Exception:
     client = None
-    
+
 # ── Per-task fallback fixed code (Bug 5 fix: correct structs per task) ────────
 FALLBACK_CODE = {
     "task1_syntax": '''package main
@@ -311,12 +311,17 @@ def run_task(task_id: str) -> float:
 
         # ── Step the env ──────────────────────────────────────────────────────
         result = _post(f"/step?task_id={task_id}", action)
-        reward = result["reward"]["total"]
+        reward = result.get("reward", {}).get("total", 0.0)
+        # clamp to (0,1)
+        if reward <= 0.0:
+            reward = 0.01
+        elif reward >= 1.0:
+            reward = 0.99
         done   = result["done"]
         obs    = result["observation"]   # update obs for next iteration
 
         all_rewards.append(reward)
-        final_score = reward
+        final_score = max(0.01, min(reward, 0.99))
 
         compile_ok  = result["reward"]["compile_score"] > 0
         action_str  = f"issues={len(issues)} compile={'ok' if compile_ok else 'fail'}"
@@ -355,6 +360,7 @@ def main():
         scores.append(score)
 
     avg = sum(scores) / len(scores)
+    avg = max(0.01, min(avg, 0.99))
     print(f"# Final average score: {avg:.2f}", flush=True)
 
 
